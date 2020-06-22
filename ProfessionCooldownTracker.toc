@@ -1,0 +1,8 @@
+## Interface: 11304
+## Title: Profession Cooldown Tracker
+## Notes: Tracks profession cooldowns
+## Version: 1.0
+## Author: László Major
+## SavedVariables: ProfessionCooldownTrackerDB
+
+ProfessionCooldownTracker.lua
