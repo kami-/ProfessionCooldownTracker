@@ -44,6 +44,14 @@ pct.COMMANDS = {
     end
 };
 
+local function getTableSize(tbl)
+    local count = 0;
+    for _ in pairs(tbl) do
+        count = count + 1
+    end
+    return count;
+end
+
 local function formatCooldownReadyIn(readyAt)
     local readyInSeconds = readyAt - GetServerTime();
     local minutes = math.floor(readyInSeconds / 60 % 60);
@@ -59,7 +67,7 @@ local function formatCooldownReadyIn(readyAt)
     if (minutes > 0) then
         text = text .. minutes .. " Mins ";
     end
-    return text;
+    return "|cffff0000" .. text .. "|r";
 end
 
 local function handleCommands(str)
@@ -111,18 +119,21 @@ end
 function pct:printStatus(db)
     print("Cooldowns:");
     for character, cooldowns in pairs(db) do
-        print("    " .. character);
-        for spell, info in pairs(pct.TRACKED_SPELLS) do
-            local cooldown = cooldowns[spell];
-            if (cooldown ~= nil) then
-                local name = GetSpellInfo(info.spellId);
-                local line = "        - " .. name .. ": ";
-                if (cooldown.ready) then
-                    line = line .. "Ready";
-                else
-                    line = line .. formatCooldownReadyIn(cooldowns[spell].readyAt);
+        local cooldownCount = getTableSize(cooldowns);
+        if (cooldownCount > 0) then
+            print("    " .. character);
+            for spell, info in pairs(pct.TRACKED_SPELLS) do
+                local cooldown = cooldowns[spell];
+                if (cooldown ~= nil) then
+                    local name = GetSpellInfo(info.spellId);
+                    local line = "        - " .. name .. ": ";
+                    if (cooldown.ready) then
+                        line = line .. "|cff00ff00Ready|r";
+                    else
+                        line = line .. formatCooldownReadyIn(cooldowns[spell].readyAt);
+                    end
+                    print(line);
                 end
-                print(line);
             end
         end
     end
@@ -132,7 +143,7 @@ local events = CreateFrame("Frame");
 events:SetScript("OnEvent", function(__, event, arg1)
     if event == "ADDON_LOADED" and arg1 == addonName then
         pct:initialize();
-    elseif event == "PLAYER_ENTERING_WORLD" then
+    elseif event == "PLAYER_LOGIN" then
         pct:updateCurrentCharacterCooldowns(ProfessionCooldownTrackerDB);
         pct:printStatus(ProfessionCooldownTrackerDB);
     elseif event == "PLAYER_LOGOUT" then
@@ -140,4 +151,4 @@ events:SetScript("OnEvent", function(__, event, arg1)
     end
 end);
 events:RegisterEvent("ADDON_LOADED");
-events:RegisterEvent("PLAYER_ENTERING_WORLD");
+events:RegisterEvent("PLAYER_LOGIN");
